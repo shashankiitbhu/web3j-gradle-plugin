@@ -1,42 +1,71 @@
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        mavenLocal()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.4'
+    }
+}
 plugins {
-    id 'java'
-    id 'java-gradle-plugin'
-    id 'idea'
+    id 'com.android.library' version '8.5.2'
+//    id 'java-gradle-plugin'
     id 'maven-publish'
     id 'jacoco'
-    id 'com.diffplug.spotless' version '6.25.0'
-    id 'com.gradle.plugin-publish' version '1.2.1'
+//    id 'com.diffplug.spotless' version '6.25.0'
+//    id 'com.gradle.plugin-publish' version '1.2.1'
     id 'de.undercouch.download' version '4.1.2'
 }
 
-description = 'Gradle plugin providing tasks to generate Web3j contracts from Solidity.'
-sourceCompatibility = 17
+description = 'Android library providing tasks to generate Web3j contracts from Solidity.'
 
-ext {
-    web3jVersion = version
-}
+android {
 
-apply {
-    [
-        'jacoco',
-        'java',
-        'javadoc',
-        'repositories',
-        'spotless',
-        'junit'
-    ].each { buildScript ->
-        download {
-            src "https://raw.githubusercontent.com/hyperledger/web3j-build-tools/main/gradle/$buildScript/build.gradle"
-            dest "$rootDir/gradle/$buildScript/build.gradle"
-            overwrite true
-            quiet true
-            onlyIfModified true
+    namespace 'org.weg3j'
+    compileSdkVersion 34
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/java', "$buildDir/generated-resources/main"]
         }
-        from("$rootDir/gradle/$buildScript/build.gradle")
+    }
+
+    packagingOptions {
+        resources.excludes += [
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md"
+        ]
     }
 }
 
+ext {
+    web3jVersion = version
+    kotlinVersion = '1.8.10' // Specify your Kotlin version
+    solidityPluginVersion = '1.0.0' // Specify your Solidity plugin version
+}
+
 repositories {
+    google()
+    mavenCentral()
+    mavenLocal()
     maven {
         url 'https://plugins.gradle.org/m2/'
     }
@@ -50,6 +79,10 @@ dependencies {
     implementation("org.web3j:codegen:$web3jVersion") {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
     }
+    implementation("org.web3j:abi:4.12.4")
+
+    implementation gradleApi()
+    implementation localGroovy()
 
     configurations.all {
         resolutionStrategy {
@@ -62,53 +95,83 @@ dependencies {
     }
 }
 
-gradlePlugin {
-    website = 'https://web3j.io/'
-    vcsUrl = 'https://github.com/hyperledger/web3j-gradle-plugin'
-    plugins {
-        web3j {
-            description = 'Gradle plugin providing tasks to generate web3j contracts from Solidity.'
-            displayName = description
-            tags.set([
-                'solidity',
-                'ethereum',
-                'web3.js',
-                'web3j'
-            ])
-            id = 'org.web3j'
-            implementationClass = 'org.web3j.gradle.plugin.Web3jPlugin'
-        }
-    }
-}
 
-def generatedResources = "$buildDir/generated-resources/main"
-
-sourceSets {
-    main {
-        output.dir(generatedResources, builtBy: 'generateVersionProperties')
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
     }
 }
 
 task generateVersionProperties {
     doLast {
+        def generatedResources = "$buildDir/generated-resources/main"
         new File(generatedResources).mkdirs()
         def generated = new File(generatedResources, "version.properties")
         generated.text = "version=$rootProject.version"
     }
 }
 
+//gradlePlugin {
+//    website = 'https://web3j.io/'
+//    vcsUrl = 'https://github.com/hyperledger/web3j-gradle-plugin'
+//    plugins {
+//        web3j {
+//            description = 'Android library providing tasks to generate web3j contracts from Solidity.'
+//            displayName = description
+//            tags.set(['solidity', 'ethereum', 'web3.js', 'web3j'])
+//            id = 'org.web3j'
+//            implementationClass = 'org.web3j.gradle.plugin.Web3jPlugin'
+//        }
+//    }
+//}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.web3j'
+            artifactId = 'web3j-gradle-plugin'
+            version = version
+
+            artifact("$buildDir/outputs/aar/${project.name}-release.aar")
+        }
+    }
+    repositories {
+        maven {
+            url = uri("https://github.com/hyperledger/web3j-gradle-plugin")
+        }
+    }
+}
+
+
 tasks.withType(Test) {
     reports.html.destination file("${reporting.baseDir}/${name}")
 }
 
-tasks.named('spotlessKotlin') {
-    dependsOn tasks.named('compileTestJava')
-    dependsOn tasks.named('javadoc')
-    dependsOn tasks.named('test')
-}
+//tasks.named('spotlessKotlin') {
+//    dependsOn tasks.named('compileTestJava')
+//    dependsOn tasks.named('javadoc')
+//    dependsOn tasks.named('test')
+//}
 
-tasks.named('spotlessJava') {
-    dependsOn tasks.named('compileTestJava')
-    dependsOn tasks.named('javadoc')
-    dependsOn tasks.named('test')
+//tasks.named('spotlessJava') {
+//    dependsOn tasks.named('compileTestJava')
+//    dependsOn tasks.named('javadoc')
+//    dependsOn tasks.named('test')
+//}
+
+// Applying additional downloaded build scripts if necessary
+apply {
+    [
+            'jacoco'
+    ].each { buildScript ->
+        download {
+            src "https://raw.githubusercontent.com/hyperledger/web3j-build-tools/main/gradle/$buildScript/build.gradle"
+            dest "$rootDir/gradle/$buildScript/build.gradle"
+            overwrite true
+            quiet true
+            onlyIfModified true
+        }
+        from("$rootDir/gradle/$buildScript/build.gradle")
+    }
 }
