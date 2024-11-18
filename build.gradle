@@ -59,7 +59,7 @@ android {
 ext {
     web3jVersion = version
     kotlinVersion = '1.8.10' // Specify your Kotlin version
-    solidityPluginVersion = '1.0.0' // Specify your Solidity plugin version
+    solidityPluginVersion = '0.5.1' // Specify your Solidity plugin version
 }
 
 repositories {
@@ -80,6 +80,7 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
     }
     implementation("org.web3j:abi:4.12.4")
+
 
     implementation gradleApi()
     implementation localGroovy()
@@ -163,7 +164,7 @@ tasks.withType(Test) {
 // Applying additional downloaded build scripts if necessary
 apply {
     [
-            'jacoco'
+
     ].each { buildScript ->
         download {
             src "https://raw.githubusercontent.com/hyperledger/web3j-build-tools/main/gradle/$buildScript/build.gradle"

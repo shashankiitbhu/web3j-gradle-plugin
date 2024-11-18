@@ -10,15 +10,15 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.web3j.gradle.plugin;
+package orgs.web3j.java_plugin;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import org.gradle.api.Project;
-
 import org.web3j.abi.datatypes.Address;
+
 
 /** web3j extension for plugin configuration. */
 public class Web3jExtension {

@@ -1,0 +1,32 @@
+plugins {
+    id 'java-library'
+    id 'java-gradle-plugin'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    google()
+    mavenCentral()
+    mavenLocal()
+    maven {
+        url 'https://plugins.gradle.org/m2/'
+    }
+}
+
+//add dependencies here
+dependencies {
+
+    implementation "org.web3j.solidity:solidity-gradle-plugin:$solidityPluginVersion"
+    implementation("org.web3j:core:$web3jVersion") {
+        exclude group: 'org.slf4j', module: 'slf4j-nop'
+    }
+    implementation("org.web3j:codegen:$web3jVersion") {
+        exclude group: 'org.slf4j', module: 'slf4j-nop'
+    }
+    implementation("org.web3j:abi:4.12.4")
+}
+
